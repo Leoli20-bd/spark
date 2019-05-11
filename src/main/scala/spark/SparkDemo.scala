@@ -26,7 +26,8 @@ object SparkDemo {
     //infoDF.write.parquet("/Users/haleli/newWorld/fileInfo/pandas/test2")
     //infoDF.write.orc("/Users/haleli/newWorld/fileInfo/pandas/orc")
     //val df = spark.read.orc("/Users/haleli/newWorld/fileInfo/pandas/orc")
-    infoDF.write.csv("/User/haleli/newWorld/fileInfo/pandas/csv")
+    //infoDF.write.csv("/User/haleli/newWorld/fileInfo/pandas/csv")
+    val df = spark.read.csv("/User/haleli/newWorld/fileInfo/pandas/csv")
 
     spark.close()
   }
