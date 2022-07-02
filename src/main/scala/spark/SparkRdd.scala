@@ -57,13 +57,6 @@ object SparkRdd {
 
     unionRdd.collect()
 
-
-
-
-
-
-
-
     sc.stop()
 
   }

@@ -3,6 +3,8 @@ package sparkSQL
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.broadcast
 
+import java.util.Properties
+
 /**
   * @ClassName: DataSourceDemo
   * @Author: haleli
@@ -11,32 +13,29 @@ import org.apache.spark.sql.functions.broadcast
   * @Description: ${Desc}
   * @Version: ${Version}
   **/
-object DataSourceDemo {
+object SparkRddTransform {
 
   def main(args: Array[String]): Unit = {
-    val spark: SparkSession = SparkSession.builder().master("local[*]").getOrCreate()
+    val spark: SparkSession = SparkSession.builder()
+      .appName(this.getClass.getSimpleName)
+      .master("local[*]")
+      .enableHiveSupport()
+      .getOrCreate()
 
     import spark.implicits._
+    import spark.sql
+
+    //mysql properties
+    val mysql_prop: Properties = new Properties()
+    mysql_prop.setProperty("user","root")
+    mysql_prop.setProperty("password","123456")
+
+    //connect mysql
+    val mysql: DataFrame = spark.read.jdbc("jdbc:localhost:3306", "default", mysql_prop)
 
 
-    val d1: DataFrame = spark.sparkContext.makeRDD(1 to 5).map(i => (i, i * i)).toDF("value", "square")
 
-    d1.write.parquet("file:/Users/haleli/IdeaProjects/spark/data/test_table/key=1")
 
-    val d2: DataFrame = spark.sparkContext.makeRDD(6 to 10).map(i => (i, i * i * i)).toDF("value", "cube")
-
-    d2.write.parquet("file:/Users/haleli/IdeaProjects/spark/data/test_table/key=2")
-
-    val mergeTable: DataFrame = spark.read.option("mergeSchema", "true").parquet("file:/Users/haleli/IdeaProjects/spark/data/test_table")
-
-    mergeTable.printSchema()
-
-    mergeTable.createOrReplaceTempView("merge_table")
-
-    spark.sql("select * from merge_table").show(50)
-
-    //broadcastJoin
-    //broadcast(spark.table("merge_table")).join(spark.table("merge_table"),"value").show()
 
 
     spark.close()

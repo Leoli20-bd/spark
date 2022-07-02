@@ -1,0 +1,5 @@
+In other words RDDs are a collection of objects similar to collections in Scala with the difference being RDD is computed on several JVMs scattered across multiple physical servers also called nodes in a cluster while a Scala collection lives on a single JVM
+
+Additionally RDDs provide data abstraction of partitioning and distribution of the data which designed to run computations in parallel on several nodes while doing transformations on RDD most of the time we don’t have to worry of the parallelism as Spark by default provides
+
+This Apache Spark RDD tutorial describes the basic operations available on RDDs such as mapfilter and persist etc using Scala example In addition this tutorial also explains Pair RDD functions which operate on RDDs of key-value pairs such as groupByKey and join etc
