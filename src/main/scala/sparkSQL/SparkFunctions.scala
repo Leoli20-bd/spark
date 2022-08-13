@@ -2,8 +2,9 @@ package sparkSQL
 
 import jline.internal.InputStreamReader
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession, types}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 
 import java.io.{BufferedInputStream, BufferedReader, File, FileInputStream, InputStream}
 import java.sql.Date
@@ -26,9 +27,13 @@ object SparkFunctions {
       .appName(this.getClass.getSimpleName)
       .getOrCreate()
 
+
+    println(spark.version)
+
     spark.sparkContext.setLogLevel("ERROR")
 
     import spark.sqlContext.implicits._
+    import spark.sql
 
     //    // current_date()
     //    // 打印当前系统时间，返回类型date eg： 2022-06-22
@@ -62,13 +67,13 @@ object SparkFunctions {
 
     val sql_arr: Array[String] = Sqls.split(System.lineSeparator())
 
-    //    for (s <- sql_arr) {
-    //      if(s!=""){
-    //        println(s)
-    //        spark.sql(s).show(1)
-    //      }
-    //    }
-    //
+    for (s <- sql_arr) {
+      if (s != "") {
+        println(s)
+        spark.sql(s).show(1)
+      }
+    }
+
 
     val query_sql =
       """
@@ -79,8 +84,19 @@ object SparkFunctions {
         |""".stripMargin
 
     val result: DataFrame = spark.sql(query_sql)
+    //'simple', 'extended', 'codegen', 'cost', 'formatted'
+    result.explain("cost")
 
-    result.select("id", "name").where("name='jack'").show(1)
+    //print dataframe
+    result.foreach(println(_))
+
+    //print dataset
+    val ds_row: Dataset[Row] = result.select("id", "name").where("name='jack'")
+    ds_row.show(1)
+
+
+    result.toDF("id", "name", "salary", "crt_dt").show(1)
+
 
     //rdd
     val rdd: RDD[Row] = result.rdd
@@ -105,11 +121,26 @@ object SparkFunctions {
       stream.close()
     }
 
+    //从文件读取数据
+
+    val schema =
+      StructType(
+        StructField("id", IntegerType, false) ::
+          StructField("name", StringType, true) ::
+          StructField("salary", IntegerType, true) :: Nil)
+
+    val json_df: DataFrame = spark.read.schema(schema).json("config/data/employ.json").cache()
+
+    json_df
+      //.withColumn("salary",typedLit[Long](0))
+      .groupBy("id", "name")
+      .agg(collect_list("salary") as ("salary_list"))
+      .show(10)
 
     spark.close()
 
   }
 
-  case class employ(id: Int, name: String, salary: Int, ct_dt: Date)
-
 }
+
+case class employ(id: Int, name: String, salary: Int, ct_dt: Date)
